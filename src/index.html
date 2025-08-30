@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charging Station Locator</title>
+    <link rel="icon" href="favicon.ico">
+    
+    <!-- External Dependencies -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
+    
+    <!-- Local Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Desktop Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>🔌 Charging Stations</h2>
+                <p>Find stations near you</p>
+            </div>
+            <div class="sidebar-controls">
+                <div class="zoom-info" id="desktopZoomInfo">Zoom: 10</div>
+                <div class="view-toggle">
+                    <button class="toggle-btn active" id="desktopClusteredBtn">Clustered View</button>
+                    <button class="toggle-btn" id="desktopIndividualBtn">Show All Stations</button>
+                </div>
+            </div>
+            <div class="station-list" id="desktopStationList">
+                <div class="loading">Loading stations...</div>
+            </div>
+        </div>
+        
+        <!-- Map Container -->
+        <div class="map-container">
+            <div id="map"></div>
+            <div class="map-zoom-info" id="mapZoomInfo">Zoom: 10</div>
+        </div>
+        
+        <!-- Mobile Slide-Up Panel -->
+        <div class="mobile-panel" id="mobilePanel">
+            <div class="mobile-panel-handle" id="panelHandle"></div>
+            <div class="mobile-panel-header">
+                <div class="mobile-panel-title">🔌 Charging Stations</div>
+                <div class="mobile-panel-controls">
+                    <button class="toggle-btn active" id="mobileClusteredBtn">Clustered</button>
+                    <button class="toggle-btn" id="mobileIndividualBtn">Show All</button>
+                </div>
+            </div>
+            <div class="mobile-panel-content">
+                <div class="station-list" id="mobileStationList">
+                    <div class="loading">Loading stations...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- External Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js"></script>
+    
+    <!-- Main App (ES6 Module) -->
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>

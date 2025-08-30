@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete ChargePoint-Style App with Clustering + Responsive Sidebar</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            background: #f5f7fa;
+        }
+        
+        .app-container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+        }
+        
+        /* Desktop Sidebar */
+        .sidebar {
+            width: 400px;
+            background: white;
+            border-right: 1px solid #e1e5e9;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #e1e5e9;
+            background: #2c5aa0;
+            color: white;
+        }
+        
+        .sidebar-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .sidebar-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .sidebar-controls {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e1e5e9;
+            background: #f8f9fb;
+        }
+        
+        .zoom-info {
+            font-size: 12px;
+            color: #718096;
+            margin-bottom: 8px;
+        }
+        
+        .view-toggle {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .toggle-btn {
+            padding: 6px 12px;
+            border: 1px solid #cbd5e0;
+            background: white;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .toggle-btn.active {
+            background: #2c5aa0;
+            color: white;
+            border-color: #2c5aa0;
+        }
+        
+        .toggle-btn:hover:not(.active) {
+            background: #e2e8f0;
+        }
+        
+        .station-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+        }
+        
+        .station-item {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f2f4;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            position: relative;
+        }
+        
+        .station-item:hover {
+            background: #f8f9fb;
+        }
+        
+        .station-item.selected {
+            background: #e8f1ff;
+            border-left: 4px solid #2c5aa0;
+        }
+        
+        .station-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+        
+        .station-address {
+            font-size: 12px;
+            color: #718096;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+        
+        .station-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .station-type {
+            background: #28a745;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .station-type.level2 {
+            background: #ffc107;
+            color: #000;
+        }
+        
+        .station-distance {
+            font-size: 12px;
+            color: #718096;
+        }
+        
+        .station-status {
+            font-size: 11px;
+            margin-top: 4px;
+        }
+        
+        .status-available {
+            color: #28a745;
+            font-weight: 500;
+        }
+        
+        .status-occupied {
+            color: #dc3545;
+            font-weight: 500;
+        }
+        
+        /* Map Container */
+        .map-container {
+            flex: 1;
+            position: relative;
+        }
+        
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+        
+        .map-zoom-info {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.95);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        /* Mobile Slide-Up Panel */
+        .mobile-panel {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 16px 16px 0 0;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+            z-index: 2000;
+            transform: translateY(calc(100% - 120px));
+            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            max-height: 80vh;
+        }
+        
+        .mobile-panel.expanded {
+            transform: translateY(0);
+        }
+        
+        .mobile-panel-handle {
+            width: 40px;
+            height: 4px;
+            background: #cbd5e0;
+            border-radius: 2px;
+            margin: 12px auto 8px;
+            cursor: grab;
+        }
+        
+        .mobile-panel-handle:active {
+            cursor: grabbing;
+        }
+        
+        .mobile-panel-header {
+            padding: 8px 20px 16px;
+            border-bottom: 1px solid #e1e5e9;
+            text-align: center;
+        }
+        
+        .mobile-panel-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+        
+        .mobile-panel-controls {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .mobile-panel-content {
+            max-height: calc(80vh - 120px);
+            overflow-y: auto;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .mobile-panel {
+                display: block;
+            }
+            
+            .map-container {
+                width: 100%;
+            }
+        }
+        
+        /* Cluster and Station Markers */
+        .cluster-marker {
+            background: #2c5aa0;
+            border: 3px solid #ffffff;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+            box-shadow: 0 2px 8px rgba(44, 90, 160, 0.3);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .cluster-marker:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(44, 90, 160, 0.5);
+        }
+        
+        .station-marker {
+            background: #28a745;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            width: 12px;
+            height: 12px;
+            box-shadow: 0 2px 6px rgba(40, 167, 69, 0.3);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .station-marker:hover {
+            transform: scale(1.2);
+            box-shadow: 0 3px 8px rgba(40, 167, 69, 0.5);
+        }
+        
+        .station-marker.selected {
+            background: #dc3545;
+            box-shadow: 0 3px 8px rgba(220, 53, 69, 0.5);
+            transform: scale(1.3);
+        }
+        
+        .station-marker.occupied {
+            background: #ffc107;
+            box-shadow: 0 2px 6px rgba(255, 193, 7, 0.3);
+        }
+        
+        /* Custom Scrollbar */
+        .station-list::-webkit-scrollbar,
+        .mobile-panel-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .station-list::-webkit-scrollbar-track,
+        .mobile-panel-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        
+        .station-list::-webkit-scrollbar-thumb,
+        .mobile-panel-content::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+        
+        .station-list::-webkit-scrollbar-thumb:hover,
+        .mobile-panel-content::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+        
+        /* Loading State */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            color: #718096;
+            font-size: 14px;
+        }
+        
+        .loading::before {
+            content: '';
+            width: 20px;
+            height: 20px;
+            border: 2px solid #e1e5e9;
+            border-top: 2px solid #2c5aa0;
+            border-radius: 50%;
+            margin-right: 10px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Desktop Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>🔌 Charging Stations</h2>
+                <p>Find stations near you</p>
+            </div>
+            <div class="sidebar-controls">
+                <div class="zoom-info" id="desktopZoomInfo">Zoom: 10</div>
+                <div class="view-toggle">
+                    <button class="toggle-btn active" id="desktopClusteredBtn">Clustered View</button>
+                    <button class="toggle-btn" id="desktopIndividualBtn">Show All Stations</button>
+                </div>
+            </div>
+            <div class="station-list" id="desktopStationList">
+                <div class="loading">Loading stations...</div>
+            </div>
+        </div>
+        
+        <!-- Map Container -->
+        <div class="map-container">
+            <div id="map"></div>
+            <div class="map-zoom-info" id="mapZoomInfo">Zoom: 10</div>
+        </div>
+        
+        <!-- Mobile Slide-Up Panel -->
+        <div class="mobile-panel" id="mobilePanel">
+            <div class="mobile-panel-handle" id="panelHandle"></div>
+            <div class="mobile-panel-header">
+                <div class="mobile-panel-title">🔌 Charging Stations</div>
+                <div class="mobile-panel-controls">
+                    <button class="toggle-btn active" id="mobileClusteredBtn">Clustered</button>
+                    <button class="toggle-btn" id="mobileIndividualBtn">Show All</button>
+                </div>
+            </div>
+            <div class="mobile-panel-content">
+                <div class="station-list" id="mobileStationList">
+                    <div class="loading">Loading stations...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js"></script>
+    <script>
+        // Extended sample charging station data
+        const chargingStations = [
+            // Boston area stations
+            { id: 1, lat: 42.3601, lng: -71.0589, name: "Downtown Boston Station", address: "100 Summer St, Boston, MA 02110", type: "DC Fast", distance: "0.1 mi", status: "available", ports: 4, availablePorts: 2 },
+            { id: 2, lat: 42.3584, lng: -71.0636, name: "Boston Common Parking", address: "1 Charles St S, Boston, MA 02116", type: "Level 2", distance: "0.3 mi", status: "occupied", ports: 8, availablePorts: 0 },
+            { id: 3, lat: 42.3505, lng: -71.0495, name: "South End Plaza", address: "685 Washington St, Boston, MA 02118", type: "DC Fast", distance: "0.5 mi", status: "available", ports: 6, availablePorts: 4 },
+            { id: 4, lat: 42.3467, lng: -71.0972, name: "Back Bay Station Garage", address: "145 Dartmouth St, Boston, MA 02116", type: "Level 2", distance: "0.7 mi", status: "available", ports: 12, availablePorts: 8 },
+            
+            // Cambridge area
+            { id: 5, lat: 42.3736, lng: -71.1097, name: "Cambridge Shopping Center", address: "95 Broadway, Cambridge, MA 02142", type: "DC Fast", distance: "1.2 mi", status: "available", ports: 8, availablePorts: 3 },
+            { id: 6, lat: 42.3737, lng: -71.1106, name: "Harvard Square Garage", address: "1124 Massachusetts Ave, Cambridge, MA 02138", type: "Level 2", distance: "1.4 mi", status: "occupied", ports: 6, availablePorts: 0 },
+            { id: 7, lat: 42.3598, lng: -71.0927, name: "MIT Student Center", address: "84 Massachusetts Ave, Cambridge, MA 02139", type: "DC Fast", distance: "0.9 mi", status: "available", ports: 4, availablePorts: 2 },
+            { id: 8, lat: 42.3875, lng: -71.0995, name: "Porter Square Mall", address: "1816 Massachusetts Ave, Cambridge, MA 02140", type: "Level 2", distance: "1.8 mi", status: "available", ports: 10, availablePorts: 6 },
+            
+            // Somerville area  
+            { id: 9, lat: 42.3875, lng: -71.0995, name: "Davis Square", address: "341 Elm St, Somerville, MA 02144", type: "Level 2", distance: "1.6 mi", status: "available", ports: 4, availablePorts: 2 },
+            { id: 10, lat: 42.3967, lng: -71.1206, name: "Union Square", address: "50 Prospect St, Somerville, MA 02143", type: "DC Fast", distance: "2.1 mi", status: "available", ports: 6, availablePorts: 4 },
+            
+            // More distant stations
+            { id: 11, lat: 42.4072, lng: -71.1190, name: "Medford Station", address: "5 Playstead Rd, Medford, MA 02155", type: "Level 2", distance: "3.2 mi", status: "occupied", ports: 8, availablePorts: 0 },
+            { id: 12, lat: 42.3317, lng: -71.0202, name: "Quincy Station", address: "1250 Hancock St, Quincy, MA 02169", type: "DC Fast", distance: "5.8 mi", status: "available", ports: 12, availablePorts: 8 },
+            { id: 13, lat: 42.2753, lng: -71.0200, name: "Braintree Station", address: "250 Grossman Dr, Braintree, MA 02184", type: "Level 2", distance: "8.3 mi", status: "available", ports: 6, availablePorts: 3 },
+            { id: 14, lat: 42.4430, lng: -71.2294, name: "Lexington Station", address: "173 Bedford St, Lexington, MA 02421", type: "DC Fast", distance: "12.1 mi", status: "available", ports: 4, availablePorts: 4 },
+            { id: 15, lat: 42.5047, lng: -71.2356, name: "Burlington Station", address: "75 Middlesex Tpke, Burlington, MA 01803", type: "Level 2", distance: "15.4 mi", status: "occupied", ports: 10, availablePorts: 2 },
+            
+            // Western suburbs
+            { id: 16, lat: 42.3542, lng: -71.2356, name: "Newton Station", address: "455 Washington St, Newton, MA 02458", type: "DC Fast", distance: "6.7 mi", status: "available", ports: 8, availablePorts: 6 },
+            { id: 17, lat: 42.3417, lng: -71.1581, name: "Brookline Station", address: "1180 Beacon St, Brookline, MA 02446", type: "Level 2", distance: "2.9 mi", status: "available", ports: 6, availablePorts: 4 },
+            { id: 18, lat: 42.2928, lng: -71.2583, name: "Dedham Station", address: "950 Providence Hwy, Dedham, MA 02026", type: "DC Fast", distance: "9.1 mi", status: "occupied", ports: 4, availablePorts: 0 },
+        ];
+
+        // Initialize the map
+        const map = L.map('map').setView([42.3655, -71.1018], 10);
+        
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // App state
+        let currentMarkers = [];
+        let selectedStation = null;
+        let forceIndividualView = false;
+        
+        // Clustering configuration
+        const CLUSTER_CONFIG = {
+            minZoomForIndividual: 13,
+            clusterRadius: 80,
+            maxClusterSize: 50
+        };
+
+        // Distance calculation functions
+        function getDistance(lat1, lng1, lat2, lng2) {
+            const R = 6371e3;
+            const φ1 = lat1 * Math.PI/180;
+            const φ2 = lat2 * Math.PI/180;
+            const Δφ = (lat2-lat1) * Math.PI/180;
+            const Δλ = (lng1-lng2) * Math.PI/180;
+
+            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                    Math.cos(φ1) * Math.cos(φ2) *
+                    Math.sin(Δλ/2) * Math.sin(Δλ/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+            return R * c;
+        }
+
+        function getPixelDistance(lat1, lng1, lat2, lng2) {
+            const point1 = map.latLngToLayerPoint([lat1, lng1]);
+            const point2 = map.latLngToLayerPoint([lat2, lng2]);
+            return Math.sqrt(Math.pow(point1.x - point2.x, 2) + Math.pow(point1.y - point2.y, 2));
+        }
+
+        // Clustering algorithm
+        function clusterStations(stations, zoom) {
+            // Force individual view or high zoom level
+            if (forceIndividualView || zoom >= CLUSTER_CONFIG.minZoomForIndividual) {
+                return stations.map(station => ({
+                    type: 'individual',
+                    station: station,
+                    lat: station.lat,
+                    lng: station.lng
+                }));
+            }
+
+            const clusters = [];
+            const processed = new Set();
+
+            stations.forEach((station, index) => {
+                if (processed.has(index)) return;
+
+                const cluster = {
+                    type: 'cluster',
+                    stations: [station],
+                    lat: station.lat,
+                    lng: station.lng,
+                    bounds: {
+                        minLat: station.lat,
+                        maxLat: station.lat,
+                        minLng: station.lng,
+                        maxLng: station.lng
+                    }
+                };
+
+                // Find nearby stations to cluster
+                stations.forEach((otherStation, otherIndex) => {
+                    if (otherIndex === index || processed.has(otherIndex)) return;
+
+                    const pixelDistance = getPixelDistance(
+                        station.lat, station.lng,
+                        otherStation.lat, otherStation.lng
+                    );
+
+                    if (pixelDistance <= CLUSTER_CONFIG.clusterRadius && 
+                        cluster.stations.length < CLUSTER_CONFIG.maxClusterSize) {
+                        
+                        cluster.stations.push(otherStation);
+                        processed.add(otherIndex);
+                        
+                        // Update cluster bounds
+                        cluster.bounds.minLat = Math.min(cluster.bounds.minLat, otherStation.lat);
+                        cluster.bounds.maxLat = Math.max(cluster.bounds.maxLat, otherStation.lat);
+                        cluster.bounds.minLng = Math.min(cluster.bounds.minLng, otherStation.lng);
+                        cluster.bounds.maxLng = Math.max(cluster.bounds.maxLng, otherStation.lng);
+                    }
+                });
+
+                // Calculate cluster center (centroid)
+                if (cluster.stations.length > 1) {
+                    const totalLat = cluster.stations.reduce((sum, s) => sum + s.lat, 0);
+                    const totalLng = cluster.stations.reduce((sum, s) => sum + s.lng, 0);
+                    cluster.lat = totalLat / cluster.stations.length;
+                    cluster.lng = totalLng / cluster.stations.length;
+                }
+
+                clusters.push(cluster);
+                processed.add(index);
+            });
+
+            return clusters;
+        }
+
+        // Create cluster marker
+        function createClusterMarker(cluster) {
+            const count = cluster.stations.length;
+            const size = Math.min(50, Math.max(30, 20 + count * 2));
+            
+            const clusterIcon = L.divIcon({
+                html: `<div class="cluster-marker" style="width:${size}px;height:${size}px;">${count}</div>`,
+                className: 'cluster-div-icon',
+                iconSize: [size, size],
+                iconAnchor: [size/2, size/2]
+            });
+
+            const marker = L.marker([cluster.lat, cluster.lng], { icon: clusterIcon });
+            
+            marker.on('click', () => {
+                if (cluster.stations.length === 1) {
+                    selectStation(cluster.stations[0]);
+                } else {
+                    const bounds = L.latLngBounds([
+                        [cluster.bounds.minLat, cluster.bounds.minLng],
+                        [cluster.bounds.maxLat, cluster.bounds.maxLng]
+                    ]);
+                    map.fitBounds(bounds.pad(0.1));
+                }
+            });
+
+            marker.on('mouseover', () => {
+                const stationsList = cluster.stations.map(s => s.name).slice(0, 5).join('<br>');
+                const moreText = cluster.stations.length > 5 ? `<br><em>...and ${cluster.stations.length - 5} more</em>` : '';
+                
+                L.popup()
+                    .setLatLng([cluster.lat, cluster.lng])
+                    .setContent(`<strong>${count} Charging Stations</strong><br><br>${stationsList}${moreText}`)
+                    .openOn(map);
+            });
+
+            return marker;
+        }
+
+        // Create individual station marker
+        function createStationMarker(station) {
+            const isSelected = selectedStation && selectedStation.id === station.id;
+            const isOccupied = station.status === 'occupied';
+            
+            let markerClass = 'station-marker';
+            if (isSelected) markerClass += ' selected';
+            else if (isOccupied) markerClass += ' occupied';
+            
+            const stationIcon = L.divIcon({
+                html: `<div class="${markerClass}"></div>`,
+                className: 'station-div-icon',
+                iconSize: [12, 12],
+                iconAnchor: [6, 6]
+            });
+
+            const marker = L.marker([station.lat, station.lng], { icon: stationIcon });
+            
+            marker.on('click', () => {
+                selectStation(station);
+            });
+
+            return marker;
+        }
+
+        // Select a station
+        function selectStation(station) {
+            selectedStation = station;
+            updateMarkers();
+            updateStationLists();
+            
+            // Show popup
+            L.popup()
+                .setLatLng([station.lat, station.lng])
+                .setContent(`
+                    <div style="min-width: 200px;">
+                        <strong>${station.name}</strong><br>
+                        <small>${station.address}</small><br>
+                        <span style="color: ${station.status === 'available' ? '#28a745' : '#dc3545'};">
+                            ${station.availablePorts}/${station.ports} ports available
+                        </span><br>
+                        <span style="background: ${station.type === 'DC Fast' ? '#28a745' : '#ffc107'}; color: ${station.type === 'DC Fast' ? 'white' : 'black'}; padding: 2px 8px; border-radius: 12px; font-size: 11px;">
+                            ${station.type}
+                        </span>
+                    </div>
+                `)
+                .openOn(map);
+        }
+
+        // Create station list item HTML
+        function createStationListItem(station) {
+            const isSelected = selectedStation && selectedStation.id === station.id;
+            const selectedClass = isSelected ? 'selected' : '';
+            
+            return `
+                <div class="station-item ${selectedClass}" data-station-id="${station.id}">
+                    <div class="station-name">${station.name}</div>
+                    <div class="station-address">${station.address}</div>
+                    <div class="station-details">
+                        <span class="station-type ${station.type === 'Level 2' ? 'level2' : ''}">${station.type}</span>
+                        <span class="station-distance">${station.distance}</span>
+                    </div>
+                    <div class="station-status">
+                        <span class="status-${station.status}">
+                            ${station.availablePorts}/${station.ports} ports ${station.status}
+                        </span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Update station lists (both desktop and mobile)
+        function updateStationLists() {
+            const currentZoom = map.getZoom();
+            const shouldShowClustered = !forceIndividualView && currentZoom < CLUSTER_CONFIG.minZoomForIndividual;
+            
+            let stationListHTML;
+            
+            if (shouldShowClustered) {
+                // Get current visible bounds
+                const bounds = map.getBounds();
+                const visibleStations = chargingStations.filter(station => 
+                    bounds.contains([station.lat, station.lng])
+                );
+                
+                const clusters = clusterStations(visibleStations, currentZoom);
+                const clusterCount = clusters.filter(c => c.type === 'cluster').length;
+                const individualCount = clusters.filter(c => c.type === 'individual').length;
+                
+                if (clusters.length === 0) {
+                    stationListHTML = '<div class="loading">No stations in current view</div>';
+                } else {
+                    stationListHTML = `
+                        <div style="padding: 16px 20px; background: #f8f9fb; border-bottom: 1px solid #e1e5e9; font-size: 12px; color: #718096;">
+                            Showing ${clusterCount} clusters and ${individualCount} individual stations
+                        </div>
+                    `;
+                    
+                    clusters.forEach(cluster => {
+                        if (cluster.type === 'cluster') {
+                            const availableCount = cluster.stations.filter(s => s.status === 'available').length;
+                            stationListHTML += `
+                                <div class="station-item" style="background: #f0f8ff; border-left: 4px solid #2c5aa0;">
+                                    <div class="station-name">📍 ${cluster.stations.length} Stations Cluster</div>
+                                    <div class="station-address">${availableCount} available, ${cluster.stations.length - availableCount} occupied</div>
+                                    <div class="station-details">
+                                        <span style="font-size: 11px; color: #718096;">Click cluster on map to zoom in</span>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            stationListHTML += createStationListItem(cluster.station);
+                        }
+                    });
+                }
+            } else {
+                // Show all individual stations
+                stationListHTML = `
+                    <div style="padding: 16px 20px; background: #f8f9fb; border-bottom: 1px solid #e1e5e9; font-size: 12px; color: #718096;">
+                        Showing all ${chargingStations.length} individual stations
+                    </div>
+                ` + chargingStations.map(createStationListItem).join('');
+            }
+            
+            document.getElementById('desktopStationList').innerHTML = stationListHTML;
+            document.getElementById('mobileStationList').innerHTML = stationListHTML;
+            
+            // Add click listeners
+            document.querySelectorAll('.station-item').forEach(item => {
+                const stationId = item.dataset.stationId;
+                if (stationId) {
+                    item.addEventListener('click', (e) => {
+                        const station = chargingStations.find(s => s.id === parseInt(stationId));
+                        if (station) {
+                            selectStation(station);
+                            map.setView([station.lat, station.lng], Math.max(map.getZoom(), 15));
+                        }
+                    });
+                }
+            });
+        }
+
+        // Update map markers
+        function updateMarkers() {
+            // Clear existing markers
+            currentMarkers.forEach(marker => map.removeLayer(marker));
+            currentMarkers = [];
+
+            const currentZoom = map.getZoom();
+            
+            // Get stations within current view (optimization)
+            const bounds = map.getBounds();
+            const visibleStations = chargingStations.filter(station => 
+                bounds.contains([station.lat, station.lng])
+            );
+
+            // Cluster the stations
+            const clusters = clusterStations(visibleStations, currentZoom);
+            
+            // Add markers to map
+            clusters.forEach(cluster => {
+                let marker;
+                if (cluster.type === 'individual') {
+                    marker = createStationMarker(cluster.station);
+                } else {
+                    marker = createClusterMarker(cluster);
+                }
+                
+                currentMarkers.push(marker);
+                marker.addTo(map);
+            });
+
+            // Update zoom info displays
+            const zoomText = `Zoom: ${currentZoom}`;
+            document.getElementById('desktopZoomInfo').textContent = zoomText;
+            document.getElementById('mapZoomInfo').textContent = zoomText;
+            
+            console.log(`Zoom ${currentZoom}: Showing ${clusters.length} markers (${clusters.filter(c => c.type === 'cluster').length} clusters, ${clusters.filter(c => c.type === 'individual').length} individual)`);
+        }
+
+        // Toggle view mode
+        function toggleViewMode(forceIndividual) {
+            forceIndividualView = forceIndividual;
+            
+            // Update button states
+            const desktopClusteredBtn = document.getElementById('desktopClusteredBtn');
+            const desktopIndividualBtn = document.getElementById('desktopIndividualBtn');
+            const mobileClusteredBtn = document.getElementById('mobileClusteredBtn');
+            const mobileIndividualBtn = document.getElementById('mobileIndividualBtn');
+            
+            if (forceIndividual) {
+                desktopClusteredBtn.classList.remove('active');
+                desktopIndividualBtn.classList.add('active');
+                mobileClusteredBtn.classList.remove('active');
+                mobileIndividualBtn.classList.add('active');
+            } else {
+                desktopClusteredBtn.classList.add('active');
+                desktopIndividualBtn.classList.remove('active');
+                mobileClusteredBtn.classList.add('active');
+                mobileIndividualBtn.classList.remove('active');
+            }
+            
+            updateMarkers();
+            updateStationLists();
+        }
+
+        // Mobile panel functionality
+        let startY = 0;
+        let currentY = 0;
+        let isDragging = false;
+        let isExpanded = false;
+        
+        const mobilePanel = document.getElementById('mobilePanel');
+        const panelHandle = document.getElementById('panelHandle');
+
+        // Touch event handlers
+        function handleTouchStart(e) {
+            startY = e.touches[0].clientY;
+            isDragging = true;
+            panelHandle.style.cursor = 'grabbing';
+        }
+
+        function handleTouchMove(e) {
+            if (!isDragging) return;
+            
+            e.preventDefault();
+            currentY = e.touches[0].clientY;
+            const deltaY = currentY - startY;
+            
+            if (isExpanded) {
+                if (deltaY > 0) {
+                    const translateY = Math.min(deltaY, window.innerHeight * 0.8 - 120);
+                    mobilePanel.style.transform = `translateY(${translateY}px)`;
+                }
+            } else {
+                if (deltaY < 0) {
+                    const translateY = Math.max(window.innerHeight * 0.8 - 120 + deltaY, 0);
+                    mobilePanel.style.transform = `translateY(${translateY}px)`;
+                }
+            }
+        }
+
+        function handleTouchEnd(e) {
+            if (!isDragging) return;
+            
+            isDragging = false;
+            panelHandle.style.cursor = 'grab';
+            
+            const deltaY = currentY - startY;
+            const threshold = 50;
+            
+            if (Math.abs(deltaY) > threshold) {
+                if (isExpanded && deltaY > 0) {
+                    isExpanded = false;
+                    mobilePanel.classList.remove('expanded');
+                } else if (!isExpanded && deltaY < 0) {
+                    isExpanded = true;
+                    mobilePanel.classList.add('expanded');
+                }
+            }
+            
+            mobilePanel.style.transform = '';
+        }
+
+        // Mouse event handlers for desktop testing
+        function handleMouseDown(e) {
+            startY = e.clientY;
+            isDragging = true;
+            panelHandle.style.cursor = 'grabbing';
+        }
+
+        function handleMouseMove(e) {
+            if (!isDragging) return;
+            
+            currentY = e.clientY;
+            const deltaY = currentY - startY;
+            
+            if (isExpanded) {
+                if (deltaY > 0) {
+                    const translateY = Math.min(deltaY, window.innerHeight * 0.8 - 120);
+                    mobilePanel.style.transform = `translateY(${translateY}px)`;
+                }
+            } else {
+                if (deltaY < 0) {
+                    const translateY = Math.max(window.innerHeight * 0.8 - 120 + deltaY, 0);
+                    mobilePanel.style.transform = `translateY(${translateY}px)`;
+                }
+            }
+        }
+
+        function handleMouseUp(e) {
+            if (!isDragging) return;
+            
+            isDragging = false;
+            panelHandle.style.cursor = 'grab';
+            
+            const deltaY = currentY - startY;
+            const threshold = 50;
+            
+            if (Math.abs(deltaY) > threshold) {
+                if (isExpanded && deltaY > 0) {
+                    isExpanded = false;
+                    mobilePanel.classList.remove('expanded');
+                } else if (!isExpanded && deltaY < 0) {
+                    isExpanded = true;
+                    mobilePanel.classList.add('expanded');
+                }
+            }
+            
+            mobilePanel.style.transform = '';
+        }
+
+        // Event listeners setup
+        function setupEventListeners() {
+            // Map events
+            map.on('zoomend moveend', () => {
+                updateMarkers();
+                updateStationLists();
+            });
+            
+            // View toggle buttons
+            document.getElementById('desktopClusteredBtn').addEventListener('click', () => toggleViewMode(false));
+            document.getElementById('desktopIndividualBtn').addEventListener('click', () => toggleViewMode(true));
+            document.getElementById('mobileClusteredBtn').addEventListener('click', () => toggleViewMode(false));
+            document.getElementById('mobileIndividualBtn').addEventListener('click', () => toggleViewMode(true));
+            
+            // Mobile panel touch events
+            panelHandle.addEventListener('touchstart', handleTouchStart, { passive: false });
+            document.addEventListener('touchmove', handleTouchMove, { passive: false });
+            document.addEventListener('touchend', handleTouchEnd);
+            
+            // Mouse events for desktop testing
+            panelHandle.addEventListener('mousedown', handleMouseDown);
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+            
+            // Tap to toggle panel
+            panelHandle.addEventListener('click', (e) => {
+                if (!isDragging) {
+                    isExpanded = !isExpanded;
+                    mobilePanel.classList.toggle('expanded', isExpanded);
+                }
+            });
+            
+            // Window resize handler
+            window.addEventListener('resize', () => {
+                map.invalidateSize();
+            });
+        }
+
+        // Initialize the complete application
+        function initializeApp() {
+            console.log('🚀 Initializing ChargePoint-style app with clustering + responsive sidebar');
+            
+            setupEventListeners();
+            updateMarkers();
+            updateStationLists();
+            
+            setTimeout(() => {
+                console.log('✅ App initialized successfully!');
+                console.log(`📊 Features enabled:`);
+                console.log(`   • Zoom-based clustering (transitions at zoom ${CLUSTER_CONFIG.minZoomForIndividual})`);
+                console.log(`   • Responsive sidebar (desktop) / slide-up panel (mobile)`);
+                console.log(`   • Station selection sync between map and list`);
+                console.log(`   • Manual clustering toggle buttons`);
+                console.log(`   • Touch/swipe gestures for mobile panel`);
+                console.log(`📱 Try resizing window or using mobile view to test responsiveness`);
+                console.log(`🔍 Zoom in/out or use toggle buttons to see clustering behavior`);
+            }, 100);
+        }
+
+        // Start the app
+        initializeApp();
+    </script>
+</body>
+</html>

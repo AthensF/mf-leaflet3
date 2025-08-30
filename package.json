@@ -1,0 +1,32 @@
+{
+  "name": "charging-station-locator",
+  "version": "1.0.0",
+  "description": "A responsive charging station locator with clustering and mobile support",
+  "main": "src/js/app.js",
+  "scripts": {
+    "dev": "live-server --port=3000 --open=/src",
+    "build": "mkdir -p dist && cp -r src/* dist/",
+    "serve": "python3 -m http.server 8000 --directory src",
+    "start": "npm run serve"
+  },
+  "keywords": ["charging-stations", "maps", "leaflet", "responsive", "clustering"],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  },
+  "dependencies": {
+    "leaflet": "^1.7.1"
+  },
+  "directories": {
+    "src": "./src",
+    "assets": "./src/assets"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/charging-station-locator.git"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
