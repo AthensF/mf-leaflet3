@@ -36,36 +36,39 @@ function generateComplaintsForRange(dateFilter) {
     const complaints = [];
     const types = ['Graffiti', 'Rodent', 'Tree', 'Street lights'];
     const addresses = [
-        "1 Main St, Boston, MA 02101",
-        "2 Commonwealth Ave, Boston, MA 02116",
-        "3 Newbury St, Boston, MA 02116",
-        "4 Boylston St, Boston, MA 02116",
-        "5 Washington St, Boston, MA 02108",
-        "6 Tremont St, Boston, MA 02108",
-        "7 Beacon St, Boston, MA 02108",
-        "8 Charles St, Boston, MA 02114",
-        "9 Cambridge St, Cambridge, MA 02141",
-        "10 Massachusetts Ave, Cambridge, MA 02139",
-        "11 Harvard Square, Cambridge, MA 02138",
-        "12 JFK St, Cambridge, MA 02138",
-        "13 Broadway, Cambridge, MA 02142",
-        "14 Prospect St, Cambridge, MA 02139",
-        "15 Concord Ave, Cambridge, MA 02138",
-        "16 Elm St, Somerville, MA 02144",
-        "17 Broadway, Somerville, MA 02145",
-        "18 McGrath Hwy, Somerville, MA 02143",
-        "19 Washington St, Somerville, MA 02143",
-        "20 Mystic Ave, Somerville, MA 02145",
-        "21 Medford St, Somerville, MA 02143",
-        "22 Fellsway, Medford, MA 02155",
-        "23 High St, Medford, MA 02155",
-        "24 Salem St, Medford, MA 02155"
+        "1 N Michigan Ave, Chicago, IL 60601",
+        "2 W Wacker Dr, Chicago, IL 60601",
+        "3 S State St, Chicago, IL 60603",
+        "4 W Madison St, Chicago, IL 60602",
+        "5 S Michigan Ave, Chicago, IL 60603",
+        "6 N Clark St, Chicago, IL 60602",
+        "7 W Randolph St, Chicago, IL 60601",
+        "8 N Wells St, Chicago, IL 60654",
+        "9 W Chicago Ave, Chicago, IL 60654",
+        "10 N Halsted St, Chicago, IL 60642",
+        "11 W Division St, Chicago, IL 60610",
+        "12 N Damen Ave, Chicago, IL 60647",
+        "13 W North Ave, Chicago, IL 60642",
+        "14 W Fullerton Ave, Chicago, IL 60614",
+        "15 N Ashland Ave, Chicago, IL 60622",
+        "16 W Belmont Ave, Chicago, IL 60657",
+        "17 N Sheffield Ave, Chicago, IL 60614",
+        "18 W Lawrence Ave, Chicago, IL 60625",
+        "19 N Broadway, Chicago, IL 60657",
+        "20 W Addison St, Chicago, IL 60613",
+        "21 S Lake Shore Dr, Chicago, IL 60616",
+        "22 S State St, Chicago, IL 60605",
+        "23 W 35th St, Chicago, IL 60616",
+        "24 S Pulaski Rd, Chicago, IL 60632"
     ];
-    for (let i = 0; i < originalComplaints.length; i++) {
-        const type = types[i % 4];
-        const lat = 42.2 + Math.random() * 0.2;
-        const lng = -71.2 + Math.random() * 0.2;
-        const address = addresses[i];
+    const multiplier = 10;
+    const total = originalComplaints.length * multiplier;
+    for (let i = 0; i < total; i++) {
+        const type = types[i % types.length];
+        // Chicago area randomisation (kept on land; avoid Lake Michigan)
+        const lat = 41.73 + Math.random() * 0.32; // ~41.73 to 42.05
+        const lng = -87.85 + Math.random() * 0.20; // ~-87.85 to -87.65 (west of shoreline)
+        const address = addresses[i % addresses.length];
         const date = randomDateBetween(start, end).toISOString();
         complaints.push({ id: i + 1, lat, lng, address, date, type });
     }
@@ -163,8 +166,8 @@ class ChargingStationApp {
     }
 
     initMap() {
-        // Initialize the map
-        this.map = L.map('map', { zoomControl: true }).setView([42.3655, -71.1018], 10);
+        // Initialize the map (Chicago)
+        this.map = L.map('map', { zoomControl: true }).setView([41.8781, -87.6298], 11);
         
         // Add OpenStreetMap tiles
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

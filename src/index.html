@@ -52,19 +52,22 @@
         <div class="mobile-panel" id="mobilePanel">
             <div class="mobile-panel-handle" id="panelHandle"></div>
             <div class="mobile-panel-header">
-                <div class="mobile-panel-title">Incidents report</div>
-                <h3>Type</h3>
-                <div class="filter-buttons">
-                    <button class="toggle-btn active" data-type="Graffiti">Graffiti</button>
-                    <button class="toggle-btn" data-type="Tree">Tree</button>
-                    <button class="toggle-btn" data-type="Rodent">Rodent</button>
-                    <button class="toggle-btn" data-type="Street lights">Street Lights</button>
-                </div>
-                <h3>Time Period</h3>
-                <div class="date-filter-buttons">
-                    <button class="toggle-btn active" data-date="past6">Past 6 Months</button>
-                    <button class="toggle-btn" data-date="past3">Past 3 Months</button>
-                    <button class="toggle-btn" data-date="next3">Next 3 Months</button>
+                <div class="filters-row">
+                    <div class="filters-group type-group">
+                        <div class="filter-buttons">
+                            <button class="toggle-btn active" data-type="Graffiti">Graffiti</button>
+                            <button class="toggle-btn" data-type="Tree">Tree</button>
+                            <button class="toggle-btn" data-type="Rodent">Rodent</button>
+                            <button class="toggle-btn" data-type="Street lights">Street Lights</button>
+                        </div>
+                    </div>
+                    <div class="filters-group date-group">
+                        <div class="date-filter-buttons">
+                            <button class="toggle-btn active" data-date="past6">Past 6 Months</button>
+                            <button class="toggle-btn" data-date="past3">Past 3 Months</button>
+                            <button class="toggle-btn" data-date="next3">Next 3 Months</button>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="mobile-panel-content">

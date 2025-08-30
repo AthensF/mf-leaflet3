@@ -326,6 +326,35 @@ body {
     .leaflet-control-zoom {
         display: none;
     }
+
+    /* Mobile filters row: place Type and Time Period side-by-side */
+    .mobile-panel-header {
+        text-align: left;
+    }
+    .filters-row {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+    .filters-group {
+        flex: 1 1 0;
+        min-width: 48%;
+    }
+    .filters-group .filter-buttons,
+    .filters-group .date-filter-buttons {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 6px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+    }
+    .mobile-panel-header .toggle-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+        flex-shrink: 0;
+    }
 }
 
 /* Cluster and Station Markers */
