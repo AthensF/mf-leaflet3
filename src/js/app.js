@@ -1,18 +1,62 @@
 // Main application entry point
-import { chargingStations } from './data/stations.js';
+import { complaints } from './data/complaints.js';
 import { clusterStations, CLUSTER_CONFIG } from './modules/clustering.js';
 import { createClusterMarker, createStationMarker, showStationPopup } from './modules/markers.js';
 import { createStationListItem, MobilePanel, updateToggleButtons, updateZoomInfo } from './modules/ui.js';
+
+// Map complaints into station-shaped objects to reuse existing UI/logic
+// Each item keeps original fields under _meta for future UI enhancements
+const DISPLAY_NAME = {
+    'Graffiti': 'Graffiti Removal Request',
+    'Rodent': 'Rodent Baiting',
+    'Tree': 'Tree Debris Clean-up',
+    'Street lights': 'Street Light Out'
+};
+
+const chargingStations = complaints.map(c => ({
+    id: c.id,
+    lat: c.lat,
+    lng: c.lng,
+    name: DISPLAY_NAME[c.type] || `${c.type} Complaint`,
+    address: c.address,
+    // Status/ports kept for compatibility; not meaningful for complaints
+    status: 'open',
+    ports: 0,
+    availablePorts: 0,
+    _meta: { type: c.type, date: c.date }
+}));
 
 class ChargingStationApp {
     constructor() {
         this.map = null;
         this.currentMarkers = [];
         this.selectedStation = null;
-        this.forceIndividualView = false;
+        this.currentFilter = 'all';
         this.mobilePanel = null;
         
         this.init();
+    }
+
+    getFilteredStations() {
+        if (this.currentFilter === 'all') return chargingStations;
+        return chargingStations.filter(s => s._meta.type === this.currentFilter);
+    }
+
+    setFilter(type) {
+        this.currentFilter = type;
+        this.updateFilterButtons();
+        this.updateMarkers();
+        this.updateStationLists();
+    }
+
+    updateFilterButtons() {
+        document.querySelectorAll('.filter-buttons .toggle-btn').forEach(btn => {
+            if (btn.dataset.type === this.currentFilter) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
     }
 
     init() {
@@ -30,7 +74,6 @@ class ChargingStationApp {
             console.log(`   • Zoom-based clustering (transitions at zoom ${CLUSTER_CONFIG.minZoomForIndividual})`);
             console.log('   • Responsive sidebar (desktop) / slide-up panel (mobile)');
             console.log('   • Station selection sync between map and list');
-            console.log('   • Manual clustering toggle buttons');
             console.log('   • Touch/swipe gestures for mobile panel');
             console.log('📱 Try resizing window or using mobile view to test responsiveness');
             console.log('🔍 Zoom in/out or use toggle buttons to see clustering behavior');
@@ -58,16 +101,21 @@ class ChargingStationApp {
             this.updateStationLists();
         });
         
-        // View toggle buttons
-        document.getElementById('desktopClusteredBtn')?.addEventListener('click', () => this.toggleViewMode(false));
-        document.getElementById('desktopIndividualBtn')?.addEventListener('click', () => this.toggleViewMode(true));
-        document.getElementById('mobileClusteredBtn')?.addEventListener('click', () => this.toggleViewMode(false));
-        document.getElementById('mobileIndividualBtn')?.addEventListener('click', () => this.toggleViewMode(true));
-        
+        // Filter buttons
+        const filterButtons = document.querySelectorAll('.filter-buttons .toggle-btn');
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const type = e.target.dataset.type;
+                this.setFilter(type);
+            });
+        });
+
         // Window resize handler
         window.addEventListener('resize', () => {
             this.map.invalidateSize();
         });
+
+        this.updateFilterButtons();
     }
 
     selectStation(station) {
@@ -88,12 +136,13 @@ class ChargingStationApp {
         
         // Get stations within current view (optimization)
         const bounds = this.map.getBounds();
-        const visibleStations = chargingStations.filter(station => 
+        const allStations = this.getFilteredStations();
+        const visibleStations = allStations.filter(station => 
             bounds.contains([station.lat, station.lng])
         );
 
         // Cluster the stations
-        const clusters = clusterStations(visibleStations, currentZoom, this.forceIndividualView, this.map);
+        const clusters = clusterStations(visibleStations, currentZoom, false, this.map);
         
         // Add markers to map
         clusters.forEach(cluster => {
@@ -120,27 +169,28 @@ class ChargingStationApp {
 
     updateStationLists() {
         const currentZoom = this.map.getZoom();
-        const shouldShowClustered = !this.forceIndividualView && currentZoom < CLUSTER_CONFIG.minZoomForIndividual;
+        const shouldShowClustered = currentZoom < CLUSTER_CONFIG.minZoomForIndividual;
         
         let stationListHTML;
         
         if (shouldShowClustered) {
             // Get current visible bounds
             const bounds = this.map.getBounds();
-            const visibleStations = chargingStations.filter(station => 
+            const allStations = this.getFilteredStations();
+            const visibleStations = allStations.filter(station => 
                 bounds.contains([station.lat, station.lng])
             );
             
-            const clusters = clusterStations(visibleStations, currentZoom, this.forceIndividualView, this.map);
+            const clusters = clusterStations(visibleStations, currentZoom, false, this.map);
             const clusterCount = clusters.filter(c => c.type === 'cluster').length;
             const individualCount = clusters.filter(c => c.type === 'individual').length;
             
             if (clusters.length === 0) {
-                stationListHTML = '<div class="loading">No stations in current view</div>';
+                stationListHTML = '<div class="loading">No incidents in current view</div>';
             } else {
                 stationListHTML = `
                     <div style="padding: 16px 20px; background: #f8f9fb; border-bottom: 1px solid #e1e5e9; font-size: 12px; color: #718096;">
-                        Showing ${clusterCount} clusters and ${individualCount} individual stations
+                        Showing ${clusterCount} clusters and ${individualCount} individual incidents
                     </div>
                 `;
                 
@@ -149,8 +199,8 @@ class ChargingStationApp {
                         const availableCount = cluster.stations.filter(s => s.status === 'available').length;
                         stationListHTML += `
                             <div class="station-item" style="background: #f0f8ff; border-left: 4px solid #2c5aa0;">
-                                <div class="station-name">📍 ${cluster.stations.length} Stations Cluster</div>
-                                <div class="station-address">${availableCount} available, ${cluster.stations.length - availableCount} occupied</div>
+                                <div class="station-name">📍 ${cluster.stations.length} Incidents Reported</div>
+                                <div class="station-address">Total incidents: ${cluster.stations.length}</div>
                                 <div class="station-details">
                                     <span style="font-size: 11px; color: #718096;">Click cluster on map to zoom in</span>
                                 </div>
@@ -163,11 +213,12 @@ class ChargingStationApp {
             }
         } else {
             // Show all individual stations
+            const filteredStations = this.getFilteredStations();
             stationListHTML = `
                 <div style="padding: 16px 20px; background: #f8f9fb; border-bottom: 1px solid #e1e5e9; font-size: 12px; color: #718096;">
-                    Showing all ${chargingStations.length} individual stations
+                    Showing all ${filteredStations.length} individual incidents
                 </div>
-            ` + chargingStations.map(station => createStationListItem(station, this.selectedStation)).join('');
+            ` + filteredStations.map(station => createStationListItem(station, this.selectedStation)).join('');
         }
         
         const desktopList = document.getElementById('desktopStationList');
@@ -191,12 +242,6 @@ class ChargingStationApp {
         });
     }
 
-    toggleViewMode(forceIndividual) {
-        this.forceIndividualView = forceIndividual;
-        updateToggleButtons(forceIndividual);
-        this.updateMarkers();
-        this.updateStationLists();
-    }
 }
 
 // Initialize the app when DOM is loaded

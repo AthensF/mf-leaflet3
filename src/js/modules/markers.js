@@ -27,12 +27,9 @@ export function createClusterMarker(cluster, map, onClusterClick) {
     });
 
     marker.on('mouseover', () => {
-        const stationsList = cluster.stations.map(s => s.name).slice(0, 5).join('<br>');
-        const moreText = cluster.stations.length > 5 ? `<br><em>...and ${cluster.stations.length - 5} more</em>` : '';
-        
         L.popup()
             .setLatLng([cluster.lat, cluster.lng])
-            .setContent(`<strong>${count} Charging Stations</strong><br><br>${stationsList}${moreText}`)
+            .setContent(`<strong>${count} Incidents Reported</strong><br>Zoom in for more ...`)
             .openOn(map);
     });
 
@@ -66,9 +63,19 @@ export function createStationMarker(station, selectedStation, onStationClick) {
 
 // Show station popup
 export function showStationPopup(station, map) {
-    L.popup()
-        .setLatLng([station.lat, station.lng])
-        .setContent(`
+    const isComplaint = station._meta && station._meta.type && station._meta.date;
+    const content = isComplaint
+        ? `
+            <div style="min-width: 220px;">
+                <strong>${station.name}</strong><br>
+                <small>${station.address}</small><br>
+                <div style="margin-top:6px; font-size: 12px; color: #4a5568;">
+                    <div><strong>Type:</strong> ${station._meta.type}</div>
+                    <div><strong>Date:</strong> ${new Date(station._meta.date).toLocaleString()}</div>
+                </div>
+            </div>
+        `
+        : `
             <div style="min-width: 200px;">
                 <strong>${station.name}</strong><br>
                 <small>${station.address}</small><br>
@@ -79,6 +86,10 @@ export function showStationPopup(station, map) {
                     ${station.type}
                 </span>
             </div>
-        `)
+        `;
+
+    L.popup()
+        .setLatLng([station.lat, station.lng])
+        .setContent(content)
         .openOn(map);
 }

@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../mf-takehome"
+		},
+		{
+			"path": "../mf-leaflet2"
+		}
+	],
+	"settings": {}
+}

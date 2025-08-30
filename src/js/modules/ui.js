@@ -4,7 +4,22 @@
 export function createStationListItem(station, selectedStation) {
     const isSelected = selectedStation && selectedStation.id === station.id;
     const selectedClass = isSelected ? 'selected' : '';
-    
+    const isComplaint = station._meta && station._meta.type && station._meta.date;
+
+    if (isComplaint) {
+        const dateText = new Date(station._meta.date).toLocaleString();
+        return `
+            <div class="station-item ${selectedClass}" data-station-id="${station.id}">
+                <div class="station-name">${station.name}</div>
+                <div class="station-address">${station.address}</div>
+                <div class="station-details">
+                    <span class="station-type ${station._meta.type.toLowerCase().replace(/\s+/g, '-')}">${station._meta.type}</span>
+                    <span class="station-distance">Date: ${dateText}</span>
+                </div>
+            </div>
+        `;
+    }
+
     return `
         <div class="station-item ${selectedClass}" data-station-id="${station.id}">
             <div class="station-name">${station.name}</div>

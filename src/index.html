@@ -17,14 +17,17 @@
         <!-- Desktop Sidebar -->
         <div class="sidebar">
             <div class="sidebar-header">
-                <h2>🔌 Charging Stations</h2>
-                <p>Find stations near you</p>
+                <h2>Incident reports</h2>
+                <p>Find incidents near you</p>
             </div>
             <div class="sidebar-controls">
                 <div class="zoom-info" id="desktopZoomInfo">Zoom: 10</div>
-                <div class="view-toggle">
-                    <button class="toggle-btn active" id="desktopClusteredBtn">Clustered View</button>
-                    <button class="toggle-btn" id="desktopIndividualBtn">Show All Stations</button>
+                <div class="filter-buttons">
+                    <button class="toggle-btn active" data-type="all">All</button>
+                    <button class="toggle-btn" data-type="Graffiti">Graffiti</button>
+                    <button class="toggle-btn" data-type="Tree">Tree</button>
+                    <button class="toggle-btn" data-type="Rodent">Rodent</button>
+                    <button class="toggle-btn" data-type="Street lights">Street Lights</button>
                 </div>
             </div>
             <div class="station-list" id="desktopStationList">
@@ -42,15 +45,18 @@
         <div class="mobile-panel" id="mobilePanel">
             <div class="mobile-panel-handle" id="panelHandle"></div>
             <div class="mobile-panel-header">
-                <div class="mobile-panel-title">🔌 Charging Stations</div>
-                <div class="mobile-panel-controls">
-                    <button class="toggle-btn active" id="mobileClusteredBtn">Clustered</button>
-                    <button class="toggle-btn" id="mobileIndividualBtn">Show All</button>
+                <div class="mobile-panel-title">Incidents report</div>
+                <div class="filter-buttons">
+                    <button class="toggle-btn active" data-type="all">All</button>
+                    <button class="toggle-btn" data-type="Graffiti">Graffiti</button>
+                    <button class="toggle-btn" data-type="Tree">Tree</button>
+                    <button class="toggle-btn" data-type="Rodent">Rodent</button>
+                    <button class="toggle-btn" data-type="Street lights">Street Lights</button>
                 </div>
             </div>
             <div class="mobile-panel-content">
                 <div class="station-list" id="mobileStationList">
-                    <div class="loading">Loading stations...</div>
+                    <div class="loading">Loading incidents...</div>
                 </div>
             </div>
         </div>

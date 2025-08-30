@@ -144,6 +144,26 @@ body {
     color: #000;
 }
 
+.station-type.graffiti {
+    background: #ff6b35;
+    color: white;
+}
+
+.station-type.rodent {
+    background: #8b4513;
+    color: white;
+}
+
+.station-type.tree {
+    background: #228b22;
+    color: white;
+}
+
+.station-type.street-lights {
+    background: #ffd700;
+    color: black;
+}
+
 .station-distance {
     font-size: 12px;
     color: #718096;
