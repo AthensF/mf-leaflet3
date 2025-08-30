@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charging Station Locator</title>
+    <link rel="icon" href="src/favicon.ico">
+    
+    <!-- External Dependencies -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
+    
+    <!-- Local Styles -->
+    <link rel="stylesheet" href="src/css/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Desktop Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>Incident reports</h2>
+                <button id="sidebarToggle" class="sidebar-toggle">◀</button>
+                <p>Find incidents near you</p>
+            </div>
+            <div class="sidebar-controls">
+                <div class="zoom-info" id="desktopZoomInfo">Zoom: 10</div>
+                <h3>Type</h3>
+                <div class="filter-buttons">
+                    <button class="toggle-btn active" data-type="Graffiti">Graffiti</button>
+                    <button class="toggle-btn" data-type="Tree">Tree</button>
+                    <button class="toggle-btn" data-type="Rodent">Rodent</button>
+                    <button class="toggle-btn" data-type="Street lights">Street Lights</button>
+                </div>
+                <h3>Time Period</h3>
+                <div class="date-filter-buttons">
+                    <button class="toggle-btn active" data-date="past6">Past 6 Months</button>
+                    <button class="toggle-btn" data-date="past3">Past 3 Months</button>
+                    <button class="toggle-btn" data-date="next3">Next 3 Months</button>
+                </div>
+            </div>
+            <div class="station-list" id="desktopStationList">
+                <div class="loading">Loading stations...</div>
+            </div>
+        </div>
+        
+        <!-- Map Container -->
+        <div class="map-container">
+            <div id="map"></div>
+            <div class="map-zoom-info" id="mapZoomInfo">Zoom: 10</div>
+        </div>
+        
+        <!-- Mobile Slide-Up Panel -->
+        <div class="mobile-panel" id="mobilePanel">
+            <div class="mobile-panel-handle" id="panelHandle"></div>
+            <div class="mobile-panel-header">
+                <div class="filters-row">
+                    <div class="filters-group type-group">
+                        <div class="filter-buttons">
+                            <button class="toggle-btn active" data-type="Graffiti">Graffiti</button>
+                            <button class="toggle-btn" data-type="Tree">Tree</button>
+                            <button class="toggle-btn" data-type="Rodent">Rodent</button>
+                            <button class="toggle-btn" data-type="Street lights">Street Lights</button>
+                        </div>
+                    </div>
+                    <div class="filters-group date-group">
+                        <div class="date-filter-buttons">
+                            <button class="toggle-btn active" data-date="past6">Past 6 Months</button>
+                            <button class="toggle-btn" data-date="past3">Past 3 Months</button>
+                            <button class="toggle-btn" data-date="next3">Next 3 Months</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mobile-panel-content">
+                <div class="station-list" id="mobileStationList">
+                    <div class="loading">Loading incidents...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- External Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js"></script>
+    
+    <!-- Main App (ES6 Module) -->
+    <script type="module" src="src/js/app.js"></script>
+</body>
+</html>
