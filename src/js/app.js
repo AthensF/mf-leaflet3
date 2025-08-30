@@ -61,7 +61,7 @@ function generateComplaintsForRange(dateFilter) {
         "23 W 35th St, Chicago, IL 60616",
         "24 S Pulaski Rd, Chicago, IL 60632"
     ];
-    const multiplier = 10;
+    const multiplier = window.multiplier || 200; // in console, enter window.setMultiplier(100)
     const total = originalComplaints.length * multiplier;
     for (let i = 0; i < total; i++) {
         const type = types[i % types.length];
@@ -353,5 +353,14 @@ document.addEventListener('DOMContentLoaded', () => {
         window.app.showZoomInfo = !window.app.showZoomInfo;
         window.app.updateZoomInfo(window.app.map.getZoom(), window.app.showZoomInfo);
         console.log(`Zoom info ${window.app.showZoomInfo ? 'enabled' : 'disabled'}`);
+    };
+    window.multiplier = 200; // Configurable incident multiplier
+    window.setMultiplier = (value) => {
+        if (typeof value === 'number' && value > 0) {
+            window.multiplier = value;
+            console.log(`Multiplier set to ${value}. Regenerate data to apply.`);
+        } else {
+            console.log('Invalid multiplier value. Must be a positive number.');
+        }
     };
 });
