@@ -18,16 +18,23 @@
         <div class="sidebar">
             <div class="sidebar-header">
                 <h2>Incident reports</h2>
+                <button id="sidebarToggle" class="sidebar-toggle">◀</button>
                 <p>Find incidents near you</p>
             </div>
             <div class="sidebar-controls">
                 <div class="zoom-info" id="desktopZoomInfo">Zoom: 10</div>
+                <h3>Type</h3>
                 <div class="filter-buttons">
-                    <button class="toggle-btn active" data-type="all">All</button>
-                    <button class="toggle-btn" data-type="Graffiti">Graffiti</button>
+                    <button class="toggle-btn active" data-type="Graffiti">Graffiti</button>
                     <button class="toggle-btn" data-type="Tree">Tree</button>
                     <button class="toggle-btn" data-type="Rodent">Rodent</button>
                     <button class="toggle-btn" data-type="Street lights">Street Lights</button>
+                </div>
+                <h3>Time Period</h3>
+                <div class="date-filter-buttons">
+                    <button class="toggle-btn active" data-date="past6">Past 6 Months</button>
+                    <button class="toggle-btn" data-date="past3">Past 3 Months</button>
+                    <button class="toggle-btn" data-date="next3">Next 3 Months</button>
                 </div>
             </div>
             <div class="station-list" id="desktopStationList">
@@ -46,12 +53,18 @@
             <div class="mobile-panel-handle" id="panelHandle"></div>
             <div class="mobile-panel-header">
                 <div class="mobile-panel-title">Incidents report</div>
+                <h3>Type</h3>
                 <div class="filter-buttons">
-                    <button class="toggle-btn active" data-type="all">All</button>
-                    <button class="toggle-btn" data-type="Graffiti">Graffiti</button>
+                    <button class="toggle-btn active" data-type="Graffiti">Graffiti</button>
                     <button class="toggle-btn" data-type="Tree">Tree</button>
                     <button class="toggle-btn" data-type="Rodent">Rodent</button>
                     <button class="toggle-btn" data-type="Street lights">Street Lights</button>
+                </div>
+                <h3>Time Period</h3>
+                <div class="date-filter-buttons">
+                    <button class="toggle-btn active" data-date="past6">Past 6 Months</button>
+                    <button class="toggle-btn" data-date="past3">Past 3 Months</button>
+                    <button class="toggle-btn" data-date="next3">Next 3 Months</button>
                 </div>
             </div>
             <div class="mobile-panel-content">

@@ -180,12 +180,20 @@ export function updateToggleButtons(forceIndividualView) {
 }
 
 // Update zoom info displays
-export function updateZoomInfo(zoom) {
+export function updateZoomInfo(zoom, show = false) {
     const zoomText = `Zoom: ${zoom}`;
     const elements = ['desktopZoomInfo', 'mapZoomInfo'];
     
     elements.forEach(id => {
         const element = document.getElementById(id);
-        if (element) element.textContent = zoomText;
+        if (element) {
+            if (show) {
+                element.textContent = zoomText;
+                element.style.display = 'block';
+            } else {
+                element.textContent = '';
+                element.style.display = 'none';
+            }
+        }
     });
 }
