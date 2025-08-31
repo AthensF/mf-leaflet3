@@ -1,5 +1,11 @@
 // Marker creation and management
 
+// Helper to extract zipcode from address
+function getZip(address) {
+    const zipMatch = address.match(/\b\d{5}\b/);
+    return zipMatch ? zipMatch[0] : 'Unknown';
+}
+
 // Create cluster marker
 export function createClusterMarker(cluster, map, onClusterClick) {
     const count = cluster.stations.length;
@@ -27,9 +33,14 @@ export function createClusterMarker(cluster, map, onClusterClick) {
     });
 
     marker.on('mouseover', () => {
+        const zips = new Set(cluster.stations.map(s => getZip(s.address)));
+        const zipList = Array.from(zips).join(', ');
+        const content = window.innerWidth > 768 
+            ? `<strong>${count} Incidents Reported</strong><br>Zipcodes: ${zipList}<br><button onclick="navigator.clipboard.writeText('${zipList}'); console.log('Zipcodes copied to clipboard');" style="margin-top:5px; padding:4px 8px; background:#b2bbc3; color:white; border:none; border-radius:3px; cursor:pointer; font-size:12px;" onmouseover="this.style.background='#8e949a'" onmouseout="this.style.background='#b2bbc3'" onmousedown="this.style.background='#7d848a'" onmouseup="this.style.background='#b2bbc3'">Copy Zipcodes for Google / Facebooks ads</button>`
+            : `<strong>${count} Incidents Reported</strong><br>Zoom in for more ...`;
         L.popup()
             .setLatLng([cluster.lat, cluster.lng])
-            .setContent(`<strong>${count} Incidents Reported</strong><br>Zoom in for more ...`)
+            .setContent(content)
             .openOn(map);
     });
 
