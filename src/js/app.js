@@ -83,7 +83,7 @@ class ChargingStationApp {
         this.currentFilter = 'Graffiti';
         this.currentDateFilter = 'past6';
         this.chargingStations = [];
-        this.showZoomInfo = false; // Feature flag for zoom info display.  Set tru
+        this.showZoomInfo = false; // Feature flag for zoom info display
         
         this.regenerateData();
         this.init();
@@ -297,8 +297,11 @@ class ChargingStationApp {
                 stationListHTML = '<div class="loading">No incidents in current view</div>';
             } else {
                 stationListHTML = `
-                    <div style="padding: 16px 20px; background: #f8f9fb; border-bottom: 1px solid #e1e5e9; font-size: 12px; color: #718096;">
-                        Showing ${visibleStations.length} incidents
+                    <div class="sticky-count">
+                        <div class="count-text" style="padding: 16px 20px; background: #f8f9fb; border-bottom: 1px solid #e1e5e9; font-size: 12px; color: #718096;">
+                            Showing ${visibleStations.length} incidents
+                        </div>
+                        <button class="direction-btn" onclick="window.open('https://www.google.com/maps/about/mymaps/', '_blank')">➦ Directions</button>
                     </div>
                 `;
                 
@@ -316,8 +319,11 @@ class ChargingStationApp {
             // Show all individual stations
             const filteredStations = this.getFilteredStations();
             stationListHTML = `
-                <div style="padding: 16px 20px; background: #f8f9fb; border-bottom: 1px solid #e1e5e9; font-size: 12px; color: #718096;">
-                    Showing ${filteredStations.length} incidents
+                <div class="sticky-count">
+                    <div class="count-text" style="padding: 16px 20px; background: #f8f9fb; border-bottom: 1px solid #e1e5e9; font-size: 12px; color: #718096;">
+                        Showing ${filteredStations.length} incidents
+                    </div>
+                    <button class="direction-btn" onclick="window.open('https://www.google.com/maps/about/mymaps/', '_blank')">→ Directions</button>
                 </div>
             ` + filteredStations.map(station => createStationListItem(station, this.selectedStation)).join('');
         }

@@ -123,6 +123,36 @@ body {
     padding: 0;
 }
 
+.sticky-count {
+    position: sticky;
+    top: 0;
+    background: #f8f9fb;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-right: 20px;
+}
+
+.count-text {
+    flex: 1;
+}
+
+.direction-btn {
+    margin-top: 10px;
+    padding: 6px 12px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.sticky-count .direction-btn {
+    margin-top: 0;
+}
+
 .station-item {
     padding: 16px 20px;
     border-bottom: 1px solid #f0f2f4;
