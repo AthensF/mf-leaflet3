@@ -293,7 +293,7 @@ body {
     border-radius: 16px 16px 0 0;
     box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
     z-index: 2000;
-    transform: translateY(calc(100% - 120px));
+    transform: translateY(calc(100% - 200px));
     transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
     max-height: 80vh;
 }
@@ -303,12 +303,27 @@ body {
 }
 
 .mobile-panel-handle {
-    width: 40px;
-    height: 4px;
-    background: #cbd5e0;
-    border-radius: 2px;
-    margin: 12px auto 8px;
+    width: 80px;               /* touch target width - widened for larger arrow */
+    height: 12px;              /* touch target height */
+    background: transparent;   /* no bar background */
+    margin: 6px auto 4px;
     cursor: grab;
+    position: relative;
+}
+.mobile-panel-handle::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -40%);
+    width: 0;
+    height: 0;
+    border-left: 35px solid transparent;  /* 5x wider */
+    border-right: 35px solid transparent; /* 5x wider */
+    border-bottom: 7px solid #cbd5e0;     /* same height */
+}
+.mobile-panel-handle:active::before {
+    border-bottom-color: #a0aec0;
 }
 
 .mobile-panel-handle:active {
@@ -316,7 +331,7 @@ body {
 }
 
 .mobile-panel-header {
-    padding: 8px 20px 16px;
+    padding: 4px 12px 8px;
     border-bottom: 1px solid #e1e5e9;
     text-align: center;
 }
@@ -335,7 +350,7 @@ body {
 }
 
 .mobile-panel-content {
-    max-height: calc(80vh - 120px);
+    max-height: calc(80vh - 200px);
     overflow-y: auto;
 }
 
@@ -359,18 +374,23 @@ body {
 
     /* Mobile filters row: place Type and Time Period side-by-side */
     .mobile-panel-header {
-        text-align: left;
+        text-align: center;
     }
     .filters-row {
         display: flex;
-        gap: 12px;
+        gap: 6px;
         align-items: flex-start;
-        justify-content: space-between;
+        justify-content: center; /* center groups horizontally */
         flex-wrap: wrap;
     }
     .filters-group {
         flex: 1 1 0;
         min-width: 48%;
+    }
+    .filters-group.date-group {
+        flex-basis: 100%;
+        min-width: 100%;
+        margin-top: 4px;
     }
     .filters-group .filter-buttons,
     .filters-group .date-filter-buttons {
@@ -378,7 +398,8 @@ body {
         flex-wrap: nowrap;
         gap: 6px;
         overflow-x: auto;
-        padding-bottom: 4px;
+        padding-bottom: 2px;
+        justify-content: center; /* center buttons */
     }
     .mobile-panel-header .toggle-btn {
         padding: 6px 10px;
