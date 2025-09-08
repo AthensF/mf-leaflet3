@@ -36,50 +36,21 @@ window.hideTooltip = function() {
     if (tooltip) tooltip.remove();
 };
 
-window.copyZipcodes = function(ev) {
-    try {
-        const button = ev && ev.target ? ev.target : null;
-        const raw = button && button.dataset ? button.dataset.zips : '';
-        // Normalize to one-zip-per-line
-        const normalized = raw && raw.includes(',')
-            ? raw.split(',').map(s => s.trim()).filter(Boolean).join('\n')
-            : (raw || '');
-
-        const writeClipboard = async (text) => {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                await navigator.clipboard.writeText(text);
-                return true;
-            }
-            return false;
-        };
-
-        const fallbackCopy = (text) => {
-            const ta = document.createElement('textarea');
-            ta.value = text;
-            ta.style.position = 'fixed';
-            ta.style.opacity = '0';
-            document.body.appendChild(ta);
-            ta.select();
-            try { document.execCommand('copy'); } catch {}
-            document.body.removeChild(ta);
-        };
-
-        writeClipboard(normalized).then((ok) => {
-            if (!ok) fallbackCopy(normalized);
-            console.log('Zipcodes copied to clipboard');
-            const tooltip = document.getElementById('custom-tooltip');
-            if (tooltip) {
-                tooltip.innerText = 'Copied!';
-            } else if (button) {
-                showTooltip(button, 'Copied!');
-                setTimeout(() => hideTooltip(), 2000);
-            }
-        }).catch(() => {
-            fallbackCopy(normalized);
-        });
-    } catch (e) {
-        console.error('Failed to copy zipcodes', e);
-    }
+window.copyZipcodes = function(zipList) {
+    // Convert comma-separated to newline-separated for copying
+    const newlineFormat = zipList.replace(/,\s*/g, '\n');
+    navigator.clipboard.writeText(newlineFormat).then(() => {
+        console.log('Zipcodes copied to clipboard');
+        const tooltip = document.getElementById('custom-tooltip');
+        if (tooltip) {
+            tooltip.innerText = 'Copied!';
+        } else {
+            // If tooltip not visible, show it briefly
+            const button = event.target;
+            showTooltip(button, 'Copied!');
+            setTimeout(() => hideTooltip(), 2000);
+        }
+    });
 };
 
 // Create cluster marker
@@ -117,7 +88,7 @@ export function createClusterMarker(cluster, map, onClusterClick) {
         const buttonStyle = 'margin-top:5px; padding:6px 8px; background:#b2bbc3; color:white; border:none; border-radius:3px; cursor:pointer; font-size:14px; transform:scale(1); transition:transform 0.2s;';
             
         const content = window.innerWidth > 768 
-            ? `<strong>${count} Incidents Reported</strong><br>Zipcodes: ${zipList}<br><button data-zips="${zipList}" onclick="copyZipcodes(event);" style="${buttonStyle}" onmouseover="this.style.background='#8e949a'; showTooltip(this, 'Copy zipcodes for Google Ads');" onmouseout="this.style.background='#b2bbc3'; hideTooltip();" onmousedown="this.style.background='#7d848a'; this.style.transform='scale(0.75)'" onmouseup="this.style.background='#b2bbc3'; this.style.transform='scale(1)'" title="Copy zipcodes for Google Ads">${buttonContent}</button>`
+            ? `<strong>${count} Incidents Reported</strong><br>Zipcodes: ${zipList}<br><button onclick="copyZipcodes('${zipList}');" style="${buttonStyle}" onmouseover="this.style.background='#8e949a'; showTooltip(this, 'Copy zipcodes for Google Ads');" onmouseout="this.style.background='#b2bbc3'; hideTooltip();" onmousedown="this.style.background='#7d848a'; this.style.transform='scale(0.75)'" onmouseup="this.style.background='#b2bbc3'; this.style.transform='scale(1)'" title="Copy zipcodes for Google Ads">${buttonContent}</button>`
             : `<strong>${count} Incidents Reported</strong><br>Zoom in for more ...`;
         L.popup()
             .setLatLng([cluster.lat, cluster.lng])
