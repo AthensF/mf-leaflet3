@@ -301,7 +301,7 @@ class ChargingStationApp {
                         <div class="count-text" style="padding: 16px 20px; background: #f8f9fb; border-bottom: 1px solid #e1e5e9; font-size: 12px; color: #718096;">
                             Showing ${visibleStations.length} incidents
                         </div>
-                        <button class="direction-btn" onclick="window.open('https://www.google.com/maps/d/edit?mid=1AalQhy97nHK_G0ePKK06HMWvmDuVaXE&usp=sharing', '_blank')">➦ Directions</button>
+                        <button class="direction-btn" onclick="window.open('https://maps.app.goo.gl/5NjEEM5sNt1caMi68', '_blank')">➦ Directions</button>
                     </div>
                 `;
                 
@@ -323,7 +323,7 @@ class ChargingStationApp {
                     <div class="count-text" style="padding: 16px 20px; background: #f8f9fb; border-bottom: 1px solid #e1e5e9; font-size: 12px; color: #718096;">
                         Showing ${filteredStations.length} incidents
                     </div>
-                    <button class="direction-btn" onclick="window.open('https://www.google.com/maps/d/edit?mid=1AalQhy97nHK_G0ePKK06HMWvmDuVaXE&usp=sharing', '_blank')">→ Directions</button>
+                    <button class="direction-btn" onclick="window.open('https://maps.app.goo.gl/5NjEEM5sNt1caMi68', '_blank')">➦ Directions</button>
                 </div>
             ` + filteredStations.map(station => createStationListItem(station, this.selectedStation)).join('');
         }
